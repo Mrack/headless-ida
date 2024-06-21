@@ -42,11 +42,12 @@ class HeadlessIda():
             port = s.getsockname()[1]
         os.environ["PYTHONPATH"] = os.pathsep.join(site.getsitepackages() + [site.getusersitepackages()]) + os.pathsep + os.environ.get("PYTHONPATH", "")
         if binary_path.endswith(".i64") or binary_path.endswith(".idb"):
-            tempidb = tempfile.NamedTemporaryFile(suffix=binary_path[-4:])
+            # write to current directory to avoid permission issues
+            idb_path = open(binary_path + ".temp" + binary_path[-4:], "wb")
             with open(binary_path, "rb") as f:
-                tempidb.write(f.read())
-            tempidb.flush()
-            binary_path = tempidb.name
+                idb_path.write(f.read())
+            idb_path.flush()
+            binary_path = idb_path.name
             command = f'"{idat_path}" -A -S"{escape_path(server_path)} {port}" -P+ "{binary_path}"'
         else:
             tempidb = tempfile.NamedTemporaryFile()
